@@ -40,6 +40,7 @@ class MapPoint
 {
 public:
     MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap);
+//    MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap, int cam_2);
     MapPoint(const cv::Mat &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 
     void SetWorldPos(const cv::Mat &Pos);
@@ -48,13 +49,18 @@ public:
     cv::Mat GetNormal();
     KeyFrame* GetReferenceKeyFrame();
 
-    std::map<KeyFrame*,size_t> GetObservations();
+    std::map<KeyFrame*,size_t> GetObservations();//size_t 一种用来记录大小的数据类型,保存了一个整数,sizeof可以得到
+    std::map<KeyFrame*,size_t> GetObservations_cam1();//only cam1
+    std::map<KeyFrame*,size_t> GetObservations_cam2();
     int Observations();
+    int Observations_cam1();
+    int Observations_cam2();
 
     void AddObservation(KeyFrame* pKF,size_t idx);
     void EraseObservation(KeyFrame* pKF);
 
     int GetIndexInKeyFrame(KeyFrame* pKF);
+    int GetIndexInKeyFrame_cam1(KeyFrame* pKF);
     bool IsInKeyFrame(KeyFrame* pKF);
 
     void SetBadFlag();
@@ -82,11 +88,13 @@ public:
     int PredictScale(const float &currentDist, Frame* pF);
 
 public:
-    long unsigned int mnId;
+    long unsigned int mnId; ///< Global ID for MapPoint
+    long unsigned int mnId_cam2; ///< Global ID for MapPoint //plc
     static long unsigned int nNextId;
+    static long unsigned int nNextId_cam2;
     long int mnFirstKFid;
     long int mnFirstFrame;
-    int nObs;
+    int nObs;//用来查看地图点的被观测数
 
     // Variables used by the tracking
     float mTrackProjX;
@@ -100,10 +108,10 @@ public:
 
     // Variables used by local mapping
     long unsigned int mnBALocalForKF;
-    long unsigned int mnFuseCandidateForKF;
+    long unsigned int mnFuseCandidateForKF; //储存某关键帧的mnID,表示该MP已与该关键帧融合
 
     // Variables used by loop closing
-    long unsigned int mnLoopPointForKF;
+    long unsigned int mnLoopPointForKF;//如果储存着mpCurrentKF->mnId则表示该MapPoint被mpCurrentKF闭环时观测到，避免重复添加
     long unsigned int mnCorrectedByKF;
     long unsigned int mnCorrectedReference;    
     cv::Mat mPosGBA;
@@ -118,13 +126,15 @@ protected:
      cv::Mat mWorldPos;
 
      // Keyframes observing the point and associated index in keyframe
-     std::map<KeyFrame*,size_t> mObservations;
+     std::map<KeyFrame*,size_t> mObservations; //多相机观测 // 观测到该MapPoint的KF和该MapPoint在KF中的索引
+     std::map<KeyFrame*,size_t> mObservations_cam1; //only cam1
+     std::map<KeyFrame*,size_t> mObservations_cam2; //not used
 
-     // Mean viewing direction
+     // Mean viewing direction 指多个帧对该点的平均观测方向?
      cv::Mat mNormalVector;
 
      // Best descriptor to fast matching
-     cv::Mat mDescriptor;
+     cv::Mat mDescriptor;//最佳描述子; 不分相机12吧
 
      // Reference KeyFrame
      KeyFrame* mpRefKF;
@@ -138,8 +148,9 @@ protected:
      MapPoint* mpReplaced;
 
      // Scale invariance distances
-     float mfMinDistance;
-     float mfMaxDistance;
+     // 观测到点的距离下限和上限?
+     float mfMinDistance, mfMinDistance_cam2; //cam2没啥用吧
+     float mfMaxDistance, mfMaxDistance_cam2;
 
      Map* mpMap;
 

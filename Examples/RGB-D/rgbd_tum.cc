@@ -28,28 +28,38 @@
 
 #include<System.h>
 
+//plc
+#include "ctime"
+#include "time.h"
+
 using namespace std;
 
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
                 vector<string> &vstrImageFilenamesD, vector<double> &vTimestamps);
 
-int main(int argc, char **argv)
+int main(int argc, char **argv)//用法: 0程序位置,1字典位置,2yaml文件位置,3序列集位置,4联系文件一位置,5联系文件二,6标定文件(新增)
 {
-    if(argc != 5)
+    if(argc != 7)
     {
-        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association" << endl;
+        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association1 path_to_association2 path_to_calibration" << endl;
         return 1;
     }
 
     // Retrieve paths to images
     vector<string> vstrImageFilenamesRGB;
     vector<string> vstrImageFilenamesD;
+    vector<string> vstrImageFilenamesRGB2;
+    vector<string> vstrImageFilenamesD2;
     vector<double> vTimestamps;
+    vector<double> vTimestamps2;//其实没用到,因为用的一个时间戳
     string strAssociationFilename = string(argv[4]);
+    string strAssociationFilename2 = string(argv[5]);
     LoadImages(strAssociationFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
+    LoadImages(strAssociationFilename2, vstrImageFilenamesRGB2, vstrImageFilenamesD2, vTimestamps2);//联系文件二里的图片名
 
     // Check consistency in the number of images and depthmaps
     int nImages = vstrImageFilenamesRGB.size();
+
     if(vstrImageFilenamesRGB.empty())
     {
         cerr << endl << "No images found in provided path." << endl;
@@ -60,11 +70,22 @@ int main(int argc, char **argv)
         cerr << endl << "Different number of images for rgb and depth." << endl;
         return 1;
     }
+    if(vstrImageFilenamesRGB2.empty())
+    {
+        cerr << endl << "No images found in provided path2." << endl;
+        return 1;
+    }
+    else if(vstrImageFilenamesD2.size()!=vstrImageFilenamesRGB2.size())
+    {
+        cerr << endl << "Different number of images for rgb2 and depth2." << endl;
+        return 1;
+    }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::RGBD,true);
+    ORB_SLAM2::System SLAM(argv[1],argv[2],argv[6],ORB_SLAM2::System::RGBD,true);//增加的argv[6]是标定文件
 
     // Vector for tracking time statistics
+    // 跟踪时间统计
     vector<float> vTimesTrack;
     vTimesTrack.resize(nImages);
 
@@ -74,12 +95,15 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imRGB, imD;
+    cv::Mat imRGB2, imD2;
     for(int ni=0; ni<nImages; ni++)
     {
-        // Read image and depthmap from file
+        // Read image and depthmap from file (argv[3]是序列集位置)
         imRGB = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB[ni],CV_LOAD_IMAGE_UNCHANGED);
         imD = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD[ni],CV_LOAD_IMAGE_UNCHANGED);
-        double tframe = vTimestamps[ni];
+        imRGB2 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB2[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imD2 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD2[ni],CV_LOAD_IMAGE_UNCHANGED);
+        double tframe = vTimestamps[ni];//时间戳,两相机同一个
 
         if(imRGB.empty())
         {
@@ -87,6 +111,15 @@ int main(int argc, char **argv)
                  << string(argv[3]) << "/" << vstrImageFilenamesRGB[ni] << endl;
             return 1;
         }
+        if(imRGB2.empty())
+        {
+            cerr << endl << "Failed to load image at: "
+                 << string(argv[3]) << "/" << vstrImageFilenamesRGB2[ni] << endl;
+            return 1;
+        }
+        //下面是没有相机2序列集时用的
+//        cv::Mat imRGB2 =imRGB.clone();
+//        cv::Mat imD2(imD.rows,imD.cols,imD.type(),-1);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -95,7 +128,8 @@ int main(int argc, char **argv)
 #endif
 
         // Pass the image to the SLAM system
-        SLAM.TrackRGBD(imRGB,imD,tframe);
+//        SLAM.TrackRGBD(imRGB,imD,tframe);
+        SLAM.TrackRGBD(imRGB,imD,imRGB2,imD2,tframe);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -117,6 +151,8 @@ int main(int argc, char **argv)
         if(ttrack<T)
             usleep((T-ttrack)*1e6);
     }
+    usleep(5000);
+//    while (1){}
 
     // Stop all threads
     SLAM.Shutdown();
@@ -133,21 +169,35 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
+
+    //plc
+    time_t t=std::time(0);
+    struct tm * now = std::localtime( & t );
+    string savetime=to_string(now->tm_year + 1900)+
+                     '-'+to_string(now->tm_mon + 1)+
+                     '-'+to_string(now->tm_mday)+
+                     '-'+to_string(now->tm_hour)+
+                     '-'+to_string(now->tm_min)+
+                     '-'+to_string(now->tm_sec);
+
+//    SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
+//    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
+    SLAM.SaveTrajectoryTUM("Multi_"+savetime+"_CameraTrajectory.txt");
+    SLAM.SaveKeyFrameTrajectoryTUM("Multi_"+savetime+"_KeyFrameTrajectory.txt");
 
     return 0;
 }
 
+//读取图片函数
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
                 vector<string> &vstrImageFilenamesD, vector<double> &vTimestamps)
 {
     ifstream fAssociation;
-    fAssociation.open(strAssociationFilename.c_str());
+    fAssociation.open(strAssociationFilename.c_str());//打开联系文件
     while(!fAssociation.eof())
     {
         string s;
-        getline(fAssociation,s);
+        getline(fAssociation,s);//读取一行
         if(!s.empty())
         {
             stringstream ss;

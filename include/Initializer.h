@@ -75,6 +75,8 @@ private:
     // Keypoints from Reference Frame (Frame 1)
     vector<cv::KeyPoint> mvKeys1;
 
+//    std::vector<cv::Vec3f> mvKeysRays1;//特征点坐标(仅单目)
+
     // Keypoints from Current Frame (Frame 2)
     vector<cv::KeyPoint> mvKeys2;
 

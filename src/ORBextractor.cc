@@ -406,7 +406,8 @@ static int bit_pattern_31_[256*4] =
     7,0, 12,-2/*mean (0.127002), correlation (0.537452)*/,
     -1,-6, 0,-11/*mean (0.127148), correlation (0.547401)*/
 };
-
+//TUM1.yaml里 nFeatures=1000; scaleFactor=1.2; nlevels=8; iniThFAST=20 ; minThFAST=7
+//每帧提取特征点数1000或2000 , 尺度因子1.2 , 金字塔层数8 , F提取AST阈值20 , F提取AST最小阈值8
 ORBextractor::ORBextractor(int _nfeatures, float _scaleFactor, int _nlevels,
          int _iniThFAST, int _minThFAST):
     nfeatures(_nfeatures), scaleFactor(_scaleFactor), nlevels(_nlevels),
@@ -1094,6 +1095,7 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
         // Scale keypoint coordinates
         if (level != 0)
         {
+            // mvScaleFactor[n] = 1.2^n
             float scale = mvScaleFactor[level]; //getScale(level, firstLevel, scaleFactor);
             for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
                  keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint)

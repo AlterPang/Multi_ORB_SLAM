@@ -46,6 +46,7 @@ public:
     KeyFrameDatabase(const ORBVocabulary &voc);
 
    void add(KeyFrame* pKF);
+   void add_cam1(KeyFrame* pKF);
 
    void erase(KeyFrame* pKF);
 
@@ -53,6 +54,7 @@ public:
 
    // Loop Detection
    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
+   std::vector<KeyFrame *> DetectLoopCandidates_cam1(KeyFrame* pKF, float minScore);
 
    // Relocalization
    std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F);
@@ -60,10 +62,11 @@ public:
 protected:
 
   // Associated vocabulary
-  const ORBVocabulary* mpVoc;
+  const ORBVocabulary* mpVoc;///< 预先训练好的词典
 
   // Inverted file
-  std::vector<list<KeyFrame*> > mvInvertedFile;
+  std::vector<list<KeyFrame*> > mvInvertedFile;//倒排索引，mvInvertedFile[i]表示包含了word id为i的所有关键帧
+  std::vector<list<KeyFrame*> > mvInvertedFile_cam1;//倒排索引，mvInvertedFile[i]表示包含了word id为i的所有关键帧
 
   // Mutex
   std::mutex mMutex;

@@ -45,13 +45,14 @@ class LoopClosing
 {
 public:
 
-    typedef pair<set<KeyFrame*>,int> ConsistentGroup;    
+    typedef pair<set<KeyFrame*>,int> ConsistentGroup; // <每个“连续组”中的关键帧，每个“连续组”的序号>
     typedef map<KeyFrame*,g2o::Sim3,std::less<KeyFrame*>,
         Eigen::aligned_allocator<std::pair<const KeyFrame*, g2o::Sim3> > > KeyFrameAndPose;
 
 public:
 
-    LoopClosing(Map* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
+    LoopClosing(Map* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale,
+                const cv::Mat CalibMatrix);
 
     void SetTracker(Tracking* pTracker);
 
@@ -112,23 +113,25 @@ protected:
 
     LocalMapping *mpLocalMapper;
 
+    //在LocalMapping中将关键帧插入闭环检测队列mlpLoopKeyFrameQueue
     std::list<KeyFrame*> mlpLoopKeyFrameQueue;
 
     std::mutex mMutexLoopQueue;
 
-    // Loop detector parameters
+    // Loop detector parameters //代码里等于3
     float mnCovisibilityConsistencyTh;
 
     // Loop detector variables
-    KeyFrame* mpCurrentKF;
+    KeyFrame* mpCurrentKF;//当前关键帧,要求它的闭环关键帧
     KeyFrame* mpMatchedKF;
-    std::vector<ConsistentGroup> mvConsistentGroups;
-    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;
+    std::vector<ConsistentGroup> mvConsistentGroups; //连续组? vector< pair <keyframe,int> >
+    std::vector<KeyFrame*> mvpEnoughConsistentCandidates; // DetectLoop()中得到候选闭环关键帧
     std::vector<KeyFrame*> mvpCurrentConnectedKFs;
-    std::vector<MapPoint*> mvpCurrentMatchedPoints;
-    std::vector<MapPoint*> mvpLoopMapPoints;
-    cv::Mat mScw;
+    std::vector<MapPoint*> mvpCurrentMatchedPoints; //当前帧与 闭环帧及其相连帧的 匹配上的地图点
+    std::vector<MapPoint*> mvpLoopMapPoints; // (匹配上的关键帧及其相邻帧?) 闭环关键帧及相邻帧上的点?
+    cv::Mat mScw; // 当前帧的Sim3位姿? 类似Tcw?
     g2o::Sim3 mg2oScw;
+    vector<int> vLoopMPCams;//闭环地图点(mvpLoopMapPoints)对应的相机编号,computesim3中获得
 
     long unsigned int mLastLoopKFid;
 
@@ -144,6 +147,12 @@ protected:
 
 
     bool mnFullBAIdx;
+
+//    cv::Mat CalibMatrix;
+    //两相机标定的变换矩阵
+    cv::Mat mCalibMatrix;  //4x3 不等于Tcam12 (4x4矩阵)
+    cv::Mat mRcam12= cv::Mat_<float>(3,3);
+    cv::Mat mtcam12 = cv::Mat_<float>(3,1);
 };
 
 } //namespace ORB_SLAM

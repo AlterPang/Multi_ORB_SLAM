@@ -40,7 +40,7 @@ class Map;
 class LocalMapping
 {
 public:
-    LocalMapping(Map* pMap, const float bMonocular);
+    LocalMapping(Map* pMap, const float bMonocular, const cv::Mat CalibMatrix);
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 
@@ -84,6 +84,7 @@ protected:
     void KeyFrameCulling();
 
     cv::Mat ComputeF12(KeyFrame* &pKF1, KeyFrame* &pKF2);
+//    vector<cv::Mat> ComputeF12(KeyFrame* &pKF1, KeyFrame* &pKF2);
 
     cv::Mat SkewSymmetricMatrix(const cv::Mat &v);
 
@@ -121,6 +122,13 @@ protected:
 
     bool mbAcceptKeyFrames;
     std::mutex mMutexAccept;
+
+    //+++++++++++++++++++++++++++++
+    //两相机标定的变换矩阵
+    cv::Mat mCalibMatrix;
+    cv::Mat mRcam12= cv::Mat_<float>(3,3);
+    cv::Mat mtcam12 = cv::Mat_<float>(3,1);
+    cv::Mat mtcam21 = cv::Mat_<float>(3,1);
 };
 
 } //namespace ORB_SLAM

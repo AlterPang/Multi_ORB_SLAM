@@ -1125,7 +1125,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
 
 template<class TDescriptor, class F> 
 void TemplatedVocabulary<TDescriptor,F>::transform(
-  const std::vector<TDescriptor>& features,
+  const std::vector<TDescriptor>& features,//描述子
   BowVector &v, FeatureVector &fv, int levelsup) const
 {
   v.clear();
@@ -1142,9 +1142,10 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
   
   typename vector<TDescriptor>::const_iterator fit;
   
-  if(m_weighting == TF || m_weighting == TF_IDF)
+  if(m_weighting == TF || m_weighting == TF_IDF) //m_weighting权重类型, idf:逆文档频率, tf:频率
   {
     unsigned int i_feature = 0;
+    //遍历描述子
     for(fit = features.begin(); fit < features.end(); ++fit, ++i_feature)
     {
       WordId id;

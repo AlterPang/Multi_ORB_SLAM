@@ -54,6 +54,9 @@ namespace g2o {
       Eigen::Map<const Vector3d> v(update);
       _estimate += v;
     }
+    void SetID(int id) { ptID = id; }
+    int GetID() { return ptID; }
+    int ptID; // 用于 Sim3 optimization
 };
 
 } // end namespace

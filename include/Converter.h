@@ -34,6 +34,7 @@ class Converter
 {
 public:
     static std::vector<cv::Mat> toDescriptorVector(const cv::Mat &Descriptors);
+    static std::vector<cv::Mat> toDescriptorVector(const std::vector<cv::Mat> &Descriptors);
 
     static g2o::SE3Quat toSE3Quat(const cv::Mat &cvT);
     static g2o::SE3Quat toSE3Quat(const g2o::Sim3 &gSim3);

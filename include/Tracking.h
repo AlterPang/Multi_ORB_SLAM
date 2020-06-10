@@ -55,12 +55,15 @@ class Tracking
 
 public:
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor,
+             const cv::Mat CalibMatrix);//两相机的变换矩阵
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
-    cv::Mat GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp);
-    cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp);
+    cv::Mat GrabImageRGBD(const cv::Mat &imRGB1,const cv::Mat &imD1,
+                          const cv::Mat &imRGB2,const cv::Mat &imD2,
+                          const double &timestamp);
+//    cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp);
 
     void SetLocalMapper(LocalMapping* pLocalMapper);
     void SetLoopClosing(LoopClosing* pLoopClosing);
@@ -92,9 +95,13 @@ public:
     // Input sensor
     int mSensor;
 
+    cv::Mat mCaliMatrix; //4x3矩阵,其中上面三行是Rcam12 , 第四行是tcam12
+
     // Current Frame
     Frame mCurrentFrame;
     cv::Mat mImGray;
+    cv::Mat mImGray1;
+    cv::Mat mImGray2;
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
@@ -155,12 +162,17 @@ protected:
     LoopClosing* mpLoopClosing;
 
     //ORB
+    // orb特征提取器，不管单目还是双目，mpORBextractorLeft都要用到
+    // 如果是双目，则要用到mpORBextractorRight
+    // 如果是单目，在初始化的时候使用mpIniORBextractor而不是mpORBextractorLeft，
+    // mpIniORBextractor属性中提取的特征点个数是mpORBextractorLeft的两倍
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
+    ORBextractor* mpORBextractorLeft_cam2;
     ORBextractor* mpIniORBextractor;
 
     //BoW
     ORBVocabulary* mpORBVocabulary;
-    KeyFrameDatabase* mpKeyFrameDB;
+    KeyFrameDatabase* mpKeyFrameDB; // kf数据库是基于ORBVocabulary建立的
 
     // Initalization (only for monocular)
     Initializer* mpInitializer;

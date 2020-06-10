@@ -53,9 +53,12 @@ protected:
     void DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText);
 
     // Info of the frame to be drawn
-    cv::Mat mIm;
-    int N;
+    cv::Mat mIm; //FrameDrawer.cc里 mImGray1.copyTo(mIm)
+    cv::Mat mIm_cam2;
+    int N; // 是当前帧的N_total
+    //保存的是多相机 mvKeys_total
     vector<cv::KeyPoint> mvCurrentKeys;
+    //以下两个大小都为N_total
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;
     int mnTracked, mnTrackedVO;
@@ -66,6 +69,8 @@ protected:
     Map* mpMap;
 
     std::mutex mMutex;
+
+    int N_cam1; //当前帧相机的特征点数量
 };
 
 } //namespace ORB_SLAM

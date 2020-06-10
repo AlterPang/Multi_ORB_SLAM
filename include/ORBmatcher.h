@@ -49,7 +49,11 @@ public:
 
     // Project MapPoints tracked in last frame into the current frame and search matches.
     // Used to track from previous frame (Tracking)
+    //note plc
     int SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, const float th, const bool bMono);
+    int SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, const float th, const bool bMono,
+                           cv::Mat CalibMatrix);
+    int SearchByProjection_cam1(Frame &CurrentFrame, const Frame &LastFrame, const float th, const bool bMono);
 
     // Project MapPoints seen in KeyFrame into the Frame and search matches.
     // Used in relocalisation (Tracking)
@@ -57,13 +61,24 @@ public:
 
     // Project MapPoints using a Similarity Transformation and search matches.
     // Used in loop detection (Loop Closing)
-     int SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints, std::vector<MapPoint*> &vpMatched, int th);
+     int SearchByProjection(KeyFrame* pKF, cv::Mat Scw,
+                            const std::vector<MapPoint*> &vpPoints, std::vector<int> &vLoopMPCams,
+                            std::vector<MapPoint*> &vpMatched, int th,
+                            const cv::Mat CalibMatrix);
+//     int SearchByProjection_cam1(KeyFrame* pKF, cv::Mat Scw,
+//                                 const std::vector<MapPoint*> &vpPoints, std::vector<int> &vLoopMPCams,
+//                                 std::vector<MapPoint*> &vpMatched, int th);
+    int SearchByProjection_cam1(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints,
+                                std::vector<MapPoint*> &vpMatched, int th);
 
     // Search matches between MapPoints in a KeyFrame and ORB in a Frame.
     // Brute force constrained to ORB that belong to the same vocabulary node (at a certain level)
     // Used in Relocalisation and Loop Detection
     int SearchByBoW(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
+    int SearchByBoW_cam1(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
+
     int SearchByBoW(KeyFrame *pKF1, KeyFrame* pKF2, std::vector<MapPoint*> &vpMatches12);
+    int SearchByBoW_cam1(KeyFrame *pKF1, KeyFrame* pKF2, std::vector<MapPoint*> &vpMatches12);
 
     // Matching for the Map Initialization (only used in the monocular case)
     int SearchForInitialization(Frame &F1, Frame &F2, std::vector<cv::Point2f> &vbPrevMatched, std::vector<int> &vnMatches12, int windowSize=10);
@@ -72,22 +87,42 @@ public:
     int SearchForTriangulation(KeyFrame *pKF1, KeyFrame* pKF2, cv::Mat F12,
                                std::vector<pair<size_t, size_t> > &vMatchedPairs, const bool bOnlyStereo);
 
+    int SearchForTriangulation(KeyFrame *pKF1, KeyFrame* pKF2, cv::Mat F12,
+                               std::vector<pair<size_t, size_t> > &vMatchedPairs, const bool bOnlyStereo, vector<bool> vbCam);
+
     // Search matches between MapPoints seen in KF1 and KF2 transforming by a Sim3 [s12*R12|t12]
     // In the stereo and RGB-D case, s12=1
-    int SearchBySim3(KeyFrame* pKF1, KeyFrame* pKF2, std::vector<MapPoint *> &vpMatches12, const float &s12, const cv::Mat &R12, const cv::Mat &t12, const float th);
+    int SearchBySim3(KeyFrame* pKF1, KeyFrame* pKF2, std::vector<MapPoint *> &vpMatches12, const float &s12,
+                     const cv::Mat &R12, const cv::Mat &t12, const float th, const cv::Mat CalibMatrix);
+
+    int SearchBySim3_cam1(KeyFrame* pKF1, KeyFrame* pKF2, std::vector<MapPoint *> &vpMatches12, const float &s12, const cv::Mat &R12, const cv::Mat &t12, const float th);
 
     // Project MapPoints into KeyFrame and search for duplicated MapPoints.
-    int Fuse(KeyFrame* pKF, const vector<MapPoint *> &vpMapPoints, const float th=3.0);
+//    int Fuse(KeyFrame* pKF, const vector<MapPoint *> &vpMapPoints, const float th=3.0);
+    int Fuse(KeyFrame* pKF, const vector<MapPoint *> &vpMapPoints,const cv::Mat CalibMatrix, const float th=3.0);
 
     // Project MapPoints into KeyFrame using a given Sim3 and search for duplicated MapPoints.
-    int Fuse(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint);
+//    int Fuse(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint);
+    //plc
+    int Fuse(KeyFrame* pKF, cv::Mat Scw,
+             const std::vector<MapPoint*> &vpPoints, std::vector<int> &vLoopMPcams,
+             float th, vector<MapPoint *> &vpReplacePoint,const cv::Mat CalibMatrix);
+    int Fuse_cam1(KeyFrame* pKF, cv::Mat Scw,
+             const std::vector<MapPoint*> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint);
+
+
+    cv::Mat SkewSymmetricMatrix(const cv::Mat &v);
+    cv::Mat ComputeF12(KeyFrame *&pKF1, KeyFrame *&pKF2);
 
 public:
 
     static const int TH_LOW;
     static const int TH_HIGH;
-    static const int HISTO_LENGTH;
+    static const int HISTO_LENGTH; //HISTO_LENGTH = 30
 
+//    //++++++++++++++++++++++++++++++++++++++++//plc
+    cv::Mat mRcam21= cv::Mat_<float>(3,3);
+    cv::Mat mtcam21 = cv::Mat_<float>(3,1);
 
 protected:
 

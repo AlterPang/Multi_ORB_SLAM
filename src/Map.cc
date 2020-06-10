@@ -29,7 +29,7 @@ Map::Map():mnMaxKFid(0),mnBigChangeIdx(0)
 {
 }
 
-void Map::AddKeyFrame(KeyFrame *pKF)
+void Map::AddKeyFrame(KeyFrame *pKF)//把kf添加到全局地图关键帧mspKeyFrames中
 {
     unique_lock<mutex> lock(mMutexMap);
     mspKeyFrames.insert(pKF);
@@ -37,7 +37,7 @@ void Map::AddKeyFrame(KeyFrame *pKF)
         mnMaxKFid=pKF->mnId;
 }
 
-void Map::AddMapPoint(MapPoint *pMP)
+void Map::AddMapPoint(MapPoint *pMP)//把点添加到全局地图点mspMapPoints中
 {
     unique_lock<mutex> lock(mMutexMap);
     mspMapPoints.insert(pMP);
@@ -61,6 +61,10 @@ void Map::EraseKeyFrame(KeyFrame *pKF)
     // Delete the MapPoint
 }
 
+/**
+ * @brief 设置参考MapPoints，将用于DrawMapPoints函数画图
+ * @param vpMPs Local MapPoints
+ */
 void Map::SetReferenceMapPoints(const vector<MapPoint *> &vpMPs)
 {
     unique_lock<mutex> lock(mMutexMap);
@@ -94,7 +98,7 @@ vector<MapPoint*> Map::GetAllMapPoints()
 long unsigned int Map::MapPointsInMap()
 {
     unique_lock<mutex> lock(mMutexMap);
-    return mspMapPoints.size();
+    return mspMapPoints.size();//m是成员变量,s是set类
 }
 
 long unsigned int Map::KeyFramesInMap()

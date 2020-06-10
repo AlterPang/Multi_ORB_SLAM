@@ -1,0 +1,8 @@
+<launch> 
+  <param name="orb_use_viewer" value="false"/> 
+  <node pkg="ORB_SLAM2" type="RGBD" name="ORB_SLAM2" 
+        args="/home/pang/ORB_SLAM2/Vocabulary/ORBvoc.txt 
+         /home/pang/SLAM_THINGS/multi.yaml
+         /home/pang/SLAM_THINGS/calibration0928.txt" cwd="node" output="screen"/> 
+
+</launch> 

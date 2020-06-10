@@ -63,7 +63,11 @@ using namespace std;
 namespace ORB_SLAM2
 {
 
-
+// 用于重定位, bow搜索后的pnp求解
+// pcs表示3D点在camera坐标系下的坐标
+// pws表示3D点在世界坐标系下的坐标
+// us表示图像坐标系下的2D点坐标
+// alphas为真实3D点用4个虚拟控制点表达时的系数
 PnPsolver::PnPsolver(const Frame &F, const vector<MapPoint*> &vpMapPointMatches):
     pws(0), us(0), alphas(0), pcs(0), maximum_number_of_correspondences(0), number_of_correspondences(0), mnInliersi(0),
     mnIterations(0), mnBestInliers(0), N(0)
@@ -118,6 +122,7 @@ PnPsolver::~PnPsolver()
 }
 
 
+//用于重定位
 void PnPsolver::SetRansacParameters(double probability, int minInliers, int maxIterations, int minSet, float epsilon, float th2)
 {
     mRansacProb = probability;
@@ -162,6 +167,7 @@ cv::Mat PnPsolver::find(vector<bool> &vbInliers, int &nInliers)
     return iterate(mRansacMaxIts,bFlag,vbInliers,nInliers);    
 }
 
+//用于 relocalization
 cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers)
 {
     bNoMore = false;

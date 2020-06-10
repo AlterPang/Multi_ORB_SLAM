@@ -56,6 +56,7 @@ void Viewer::Run()
     mbFinished = false;
     mbStopped = false;
 
+    //地图显示窗口
     pangolin::CreateWindowAndBind("ORB-SLAM2: Map Viewer",1024,768);
 
     // 3D Mouse handler requires depth testing to be enabled
@@ -87,6 +88,7 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
+    //视频显示窗口名
     cv::namedWindow("ORB-SLAM2: Current Frame");
 
     bool bFollow = true;
@@ -134,8 +136,10 @@ void Viewer::Run()
 
         pangolin::FinishFrame();
 
+        // NOTE 视频显示窗口
         cv::Mat im = mpFrameDrawer->DrawFrame();
-        cv::imshow("ORB-SLAM2: Current Frame",im);
+//        cv::Mat im_cam2 = mpFrameDrawer->DrawFrame();
+        cv::imshow("ORB-SLAM2: Current Frame",im); //im 这里是mImGray1以及标记特征点的框等
         cv::waitKey(mT);
 
         if(menuReset)

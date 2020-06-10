@@ -143,7 +143,7 @@ class PnPsolver {
   // 3D Points
   vector<cv::Point3f> mvP3Dw;
 
-  // Index in Frame
+  // Index in Frame //匹配上的地图点的关键点的索引,未匹配的没有
   vector<size_t> mvKeyPointIndices;
 
   // Current Estimation

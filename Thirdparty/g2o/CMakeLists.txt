@@ -159,6 +159,9 @@ g2o/core/robust_kernel_factory.cpp
 g2o/core/robust_kernel_factory.h
 g2o/core/robust_kernel_impl.cpp 
 g2o/core/robust_kernel_impl.h
+#g2o/core/sparse_optimizer_terminate_action.cpp #plc 这三个怎么用?
+#g2o/core/sparse_optimizer_terminate_action.h #plc
+#g2o/core/g2o_core_api.h #plc
 #stuff
 g2o/stuff/string_tools.h
 g2o/stuff/color_macros.h 

@@ -30,12 +30,12 @@
 namespace ORB_SLAM2
 {
 
-Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iterations)
+Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iterations)//仅单目
 {
     mK = ReferenceFrame.mK.clone();
 
     mvKeys1 = ReferenceFrame.mvKeysUn;
-
+//    mvKeysRays1 = ReferenceFrame.mvKeysRays;// plc
     mSigma = sigma;
     mSigma2 = sigma*sigma;
     mMaxIterations = iterations;

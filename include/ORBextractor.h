@@ -56,12 +56,13 @@ public:
     // Compute the ORB features and descriptors on an image.
     // ORB are dispersed on the image using an octree.
     // Mask is ignored in the current implementation.
+    //operator把括号重载为运算符
     void operator()( cv::InputArray image, cv::InputArray mask,
       std::vector<cv::KeyPoint>& keypoints,
       cv::OutputArray descriptors);
 
     int inline GetLevels(){
-        return nlevels;}
+        return nlevels;}//TUM1.yaml里是8
 
     float inline GetScaleFactor(){
         return scaleFactor;}
@@ -95,7 +96,7 @@ protected:
     std::vector<cv::Point> pattern;
 
     int nfeatures;
-    double scaleFactor;
+    double scaleFactor;  //1.2
     int nlevels;
     int iniThFAST;
     int minThFAST;
@@ -104,7 +105,7 @@ protected:
 
     std::vector<int> umax;
 
-    std::vector<float> mvScaleFactor;
+    std::vector<float> mvScaleFactor; //mvScaleFactor[i] = 1.2^i
     std::vector<float> mvInvScaleFactor;    
     std::vector<float> mvLevelSigma2;
     std::vector<float> mvInvLevelSigma2;

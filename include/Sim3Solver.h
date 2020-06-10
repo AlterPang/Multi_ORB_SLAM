@@ -36,7 +36,8 @@ class Sim3Solver
 {
 public:
 
-    Sim3Solver(KeyFrame* pKF1, KeyFrame* pKF2, const std::vector<MapPoint*> &vpMatched12, const bool bFixScale = true);
+    Sim3Solver(KeyFrame* pKF1, KeyFrame* pKF2, const std::vector<MapPoint*> &vpMatched12,
+               const cv::Mat CalibMatrix,const bool bFixScale = true);
 
     void SetRansacParameters(double probability = 0.99, int minInliers = 6 , int maxIterations = 300);
 
@@ -57,8 +58,11 @@ protected:
 
     void CheckInliers();
 
-    void Project(const std::vector<cv::Mat> &vP3Dw, std::vector<cv::Mat> &vP2D, cv::Mat Tcw, cv::Mat K);
-    void FromCameraToImage(const std::vector<cv::Mat> &vP3Dc, std::vector<cv::Mat> &vP2D, cv::Mat K);
+    void Project(const std::vector<cv::Mat> &vP3Dw, std::vector<cv::Mat> &vP2D, cv::Mat Tcw, cv::Mat K,
+                 std::vector<int> camIdxs);
+//    void FromCameraToImage(const std::vector<cv::Mat> &vP3Dc, std::vector<cv::Mat> &vP2D, cv::Mat K);
+    void FromCameraToImage(const std::vector<cv::Mat> &vP3Dc, std::vector<cv::Mat> &vP2D, cv::Mat K,
+                           std::vector<int> camIdxs);
 
 
 protected:
@@ -67,7 +71,7 @@ protected:
     KeyFrame* mpKF1;
     KeyFrame* mpKF2;
 
-    std::vector<cv::Mat> mvX3Dc1;
+    std::vector<cv::Mat> mvX3Dc1; //todo 帧1匹配点的相机坐标, 主要用来计算误差,因此全部都用相对相机1的坐标就行呗
     std::vector<cv::Mat> mvX3Dc2;
     std::vector<MapPoint*> mvpMapPoints1;
     std::vector<MapPoint*> mvpMapPoints2;
@@ -77,14 +81,18 @@ protected:
     std::vector<size_t> mvSigmaSquare2;
     std::vector<size_t> mvnMaxError1;
     std::vector<size_t> mvnMaxError2;
+    std::vector<int> camIdx1;
+    std::vector<int> camIdx2;
+    cv::Mat mRcam21;
+    cv::Mat mtcam21;
 
-    int N;
+    int N;  // mvpMapPoints1.size()匹配点数量
     int mN1;
 
     // Current Estimation
     cv::Mat mR12i;
     cv::Mat mt12i;
-    float ms12i;
+    float ms12i; // stereo/RGBD的尺度固定为1
     cv::Mat mT12i;
     cv::Mat mT21i;
     std::vector<bool> mvbInliersi;
@@ -106,7 +114,7 @@ protected:
     std::vector<size_t> mvAllIndices;
 
     // Projections
-    std::vector<cv::Mat> mvP1im1;
+    std::vector<cv::Mat> mvP1im1; // 帧1的相机坐标投影到自己的像素坐标, 用于checkinlier
     std::vector<cv::Mat> mvP2im2;
 
     // RANSAC probability

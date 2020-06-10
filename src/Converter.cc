@@ -33,6 +33,16 @@ std::vector<cv::Mat> Converter::toDescriptorVector(const cv::Mat &Descriptors)
 
     return vDesc;
 }
+//多相机, 对应上面的单相机
+std::vector<cv::Mat> Converter::toDescriptorVector(const std::vector<cv::Mat>& Descriptors)
+{
+    std::vector<cv::Mat> vDesc;
+    for (int c = 0; c < Descriptors.size(); ++c)
+        for (int j = 0; j < Descriptors[c].rows; j++)
+            vDesc.push_back(Descriptors[c].row(j));
+
+    return vDesc;
+}
 
 g2o::SE3Quat Converter::toSE3Quat(const cv::Mat &cvT)
 {
@@ -107,6 +117,7 @@ cv::Mat Converter::toCvSE3(const Eigen::Matrix<double,3,3> &R, const Eigen::Matr
     return cvMat.clone();
 }
 
+// float转为double
 Eigen::Matrix<double,3,1> Converter::toVector3d(const cv::Mat &cvVector)
 {
     Eigen::Matrix<double,3,1> v;

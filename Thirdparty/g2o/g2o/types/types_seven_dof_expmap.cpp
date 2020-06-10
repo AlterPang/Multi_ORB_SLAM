@@ -28,21 +28,38 @@
 
 namespace g2o {
 
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 顶点 用于优化sim3 //todo 添加了 keypoint_to_cam
+//  VertexSim3Expmap_Multi::VertexSim3Expmap_Multi(
+//          std::unordered_map<size_t, int>& kp_to_cam1,
+//          std::unordered_map<size_t, int>& kp_to_cam2)
+//          : BaseVertex<7, Sim3>(),
+//          keypoint_to_cam1(kp_to_cam1),
+//          keypoint_to_cam2(kp_to_cam2)
+//  {
+//    _marginalized = false;
+//    _fix_scale = false;
+//  }
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  // 顶点 用于优化Essential Graph
   VertexSim3Expmap::VertexSim3Expmap() : BaseVertex<7, Sim3>()
   {
     _marginalized=false;
     _fix_scale = false;
   }
 
-
+  // 边 用于优化Essential Graph
   EdgeSim3::EdgeSim3() :
       BaseBinaryEdge<7, Sim3, VertexSim3Expmap, VertexSim3Expmap>()
   {
   }
 
 
+  // 顶点用于优化Essential Graph
   bool VertexSim3Expmap::read(std::istream& is)
   {
+    //Mlticol里下面都删了, 因为用不到?
     Vector7d cam2world;
     for (int i=0; i<6; i++){
       is >> cam2world[i];
@@ -120,8 +137,9 @@ namespace g2o {
     return os.good();
   }
 
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /**Sim3ProjectXYZ*/
-
+  // 第一条边 用于优化Sim3的
   EdgeSim3ProjectXYZ::EdgeSim3ProjectXYZ() :
   BaseBinaryEdge<2, Vector2d, VertexSBAPointXYZ, VertexSim3Expmap>()
   {
@@ -157,7 +175,7 @@ namespace g2o {
   }
 
 /**InverseSim3ProjectXYZ*/
-
+  // 第二条边 用于优化Sim3的
   EdgeInverseSim3ProjectXYZ::EdgeInverseSim3ProjectXYZ() :
   BaseBinaryEdge<2, Vector2d, VertexSBAPointXYZ, VertexSim3Expmap>()
   {
@@ -192,6 +210,7 @@ namespace g2o {
     return os.good();
   }
 
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 //  void EdgeSim3ProjectXYZ::linearizeOplus()
 //  {
